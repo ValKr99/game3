@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Гра: Формування кредитної справи</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+  
+  /* Екран привітання */
+  .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px; background: #ffffff; z-index: 20; width: 100%; box-sizing: border-box; }
+  .welcome-screen h1 { color: #059669; font-size: 24px; margin-bottom: 10px; }
+  .welcome-screen p { font-size: 16px; color: #475569; max-width: 400px; line-height: 1.5; margin-bottom: 15px; }
+  .mascot-large { width: 120px; height: 120px; object-fit: contain; margin-bottom: 20px; }
+  .btn-start { background: #059669; color: white; padding: 15px 40px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3); transition: 0.2s; }
+  .btn-start:active { transform: scale(0.95); }
+
+  /* Верхній блок з Ощадиком під час гри */
+  .header { display: none; align-items: center; justify-content: space-between; background: #ffffff; width: 100%; padding: 10px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); box-sizing: border-box; z-index: 10; }
+  .header-left { display: flex; align-items: center; gap: 10px; width: 70%; }
+  .mascot-img { width: 50px; height: 50px; object-fit: contain; }
+  .mascot-text { font-size: 13px; color: #1e293b; font-weight: 600; line-height: 1.3; }
+  
+  /* Таймер */
+  .timer-box { background: #fef08a; color: #854d0e; padding: 5px 10px; border-radius: 10px; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 5px; border: 1px solid #fde047; }
+  .timer-box.hurry { background: #fee2e2; color: #991b1b; border-color: #fca5a5; animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+  /* Зона карток */
+  .card-container { display: none; position: relative; width: 90%; max-width: 350px; height: 300px; margin-top: 30px; perspective: 1000px; }
+  .card { position: absolute; width: 100%; height: 100%; background: white; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; box-sizing: border-box; transition: transform 0.3s ease, opacity 0.3s ease; border: 3px solid #e2e8f0; cursor: grab; user-select: none; }
+  .card h3 { font-size: 16px; color: #334155; margin: 0; pointer-events: none; }
+  
+  /* Кнопки внизу */
+  .controls { display: none; justify-content: space-between; width: 90%; max-width: 350px; margin-top: 30px; }
+  .btn { padding: 15px 10px; border: none; border-radius: 15px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 48%; }
+  .btn-left { background: #fef08a; color: #854d0e; }
+  .btn-left:active { background: #fde047; transform: scale(0.95); }
+  .btn-right { background: #bae6fd; color: #075985; }
+  .btn-right:active { background: #7dd3fc; transform: scale(0.95); }
+
+  /* Результат */
+  .result-screen { display: none; flex-direction: column; align-items: center; text-align: center; justify-content: center; height: 100vh; padding: 20px; box-sizing: border-box; }
+  .result-screen h1 { font-size: 28px; margin-bottom: 10px; }
+  .result-screen p { font-size: 18px; color: #475569; margin-bottom: 20px; }
+  .success-title { color: #059669; }
+  .fail-title { color: #dc2626; }
+</style>
+</head>
+<body>
+
+<div class="welcome-screen" id="welcome-screen">
+  <img src="oshchadyk.png" alt="Ощадик" class="mascot-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712010.png'">
+  <h1>Гра: Формування кредитної справи</h1>
+  <p>Привіт! Це гра формування кредитної справи для передачі далі.</p>
+  <p>Тобі буде необхідно посортувати документи (Оригінал чи Копія) і отримати мінімум <b>80% правильних відповідей</b>.</p>
+</p>Де документ може бути і оригіналом і копією обирай оригінал</b>.</p>
+  <p>⏳ Час на гру: <b>3 хвилини</b>.</p>
+  <button class="btn-start" onclick="startGame()">Почати</button>
+</div>
+
+<div class="header" id="header-box">
+  <div class="header-left">
+    <img src="oshchadyk.png" alt="Ощадик" class="mascot-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712010.png'">
+    <div class="mascot-text" id="mascot-msg">Свайпай: <span style="color:#ca8a04;">Оригінал</span> чи <span style="color:#0284c7;">Копія</span>!</div>
+  </div>
+  <div class="timer-box" id="timer-display">⏳ 03:00</div>
+</div>
+
+<div class="card-container" id="card-stack"></div>
+
+<div class="controls" id="controls">
+  <button class="btn btn-left" onclick="handleChoice('original')">👈 Оригінал</button>
+  <button class="btn btn-right" onclick="handleChoice('copy')">Копія 👉</button>
+</div>
+
+<div class="result-screen" id="result-screen">
+  <img src="oshchadyk.png" alt="Ощадик" class="mascot-large" id="result-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712010.png'">
+  <h1 id="result-title"></h1>
+  <p id="final-score"></p>
+  <p id="final-feedback" style="font-weight: bold;"></p>
+</div>
+
+<script>
+  let documents = [
+    { text: "Кредитні заявки (Позичальника, Поручителя)", type: "original" },
+    { text: "Паспорт споживчого кредиту", type: "original" },
+    { text: "Довідка про доходи", type: "original" },
+    { text: "Довідка щодо зобов’язань перед фін. установами", type: "original" },
+    { text: "Договори страхування", type: "original" },
+    { text: "Узагальнена інформація про кредитну операцію", type: "original" },
+    { text: "Акт приймання-передачі кредитної справи", type: "original" },
+    { text: "Паспорт, РНОКПП, Свідоцтва (про шлюб, народження тощо)", type: "copy" },
+    { text: "Кредитні договори та додатки до них", type: "copy" },
+    { text: "Договори застави (іпотеки)", type: "copy" },
+    { text: "Договори поруки та додатки до них", type: "copy" },
+    { text: "Додаткові договори до КД, поруки, застави", type: "copy" },
+    { text: "Документи, що підтверджують сплату страхового платежу", type: "copy" },
+    { text: "Витяг з протоколу Кредитного комітету", type: "copy" },
+    { text: "Висновки служб", type: "copy" },
+    { text: "Документи про вжиті Банком заходи для погашення боргу", type: "original" },
+    { text: "Документи щодо цільового використання кредитних коштів", type: "original" },
+    { text: "Документи про обтяження майна та його державну реєстрацію", type: "original" },
+    { text: "Документи про наявність та збереження заставленого майна (акти, довідки)", type: "original" },
+    { text: "Документи, що підтверджують ринкову вартість заставленого майна", type: "original" }
+  ];
+
+  documents = documents.sort(() => Math.random() - 0.5);
+
+  let currentIndex = 0;
+  let score = 0;
+  let timeLeft = 180; // 3 хвилини в секундах
+  let timerInterval;
+
+  const cardStack = document.getElementById('card-stack');
+  const mascotMsg = document.getElementById('mascot-msg');
+  const timerDisplay = document.getElementById('timer-display');
+
+  // Функція старту гри
+  function startGame() {
+    document.getElementById('welcome-screen').style.display = 'none';
+    document.getElementById('header-box').style.display = 'flex';
+    document.getElementById('card-stack').style.display = 'block';
+    document.getElementById('controls').style.display = 'flex';
+    
+    renderCards();
+
+    // Запуск таймера
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      let m = Math.floor(timeLeft / 60);
+      let s = timeLeft % 60;
+      timerDisplay.innerText = `⏳ 0${m}:${s.toString().padStart(2, '0')}`;
+      
+      // Червоний таймер, коли лишається менше 30 секунд
+      if (timeLeft <= 30) {
+        timerDisplay.classList.add('hurry');
+      }
+
+      // Час вийшов
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        showResult(true); // true означає, що час вийшов
+      }
+    }, 1000);
+  }
+
+  function renderCards() {
+    cardStack.innerHTML = '';
+    const limit = Math.min(currentIndex + 3, documents.length);
+    for (let i = limit - 1; i >= currentIndex; i--) {
+      const doc = documents[i];
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.id = `card-${i}`;
+      card.innerHTML = `<h3>${doc.text}</h3>`;
+      
+      if (i === currentIndex) {
+        card.style.zIndex = 10;
+        card.style.transform = `scale(1) translateY(0)`;
+        addSwipeListeners(card);
+      } else {
+        card.style.zIndex = 10 - (i - currentIndex);
+        card.style.transform = `scale(${1 - (i - currentIndex)*0.05}) translateY(${(i - currentIndex)*15}px)`;
+        card.style.opacity = 1 - (i - currentIndex)*0.2;
+      }
+      cardStack.appendChild(card);
+    }
+  }
+
+  function handleChoice(choice) {
+    if (currentIndex >= documents.length) return;
+
+    const currentCard = document.getElementById(`card-${currentIndex}`);
+    const correctType = documents[currentIndex].type;
+    const isCorrect = choice === correctType;
+
+    if (isCorrect) {
+      score++;
+      currentCard.style.borderColor = "#22c55e"; 
+      mascotMsg.innerHTML = "Правильно! 😎";
+    } else {
+      currentCard.style.borderColor = "#ef4444"; 
+      mascotMsg.innerHTML = "Помилка! 😬";
+    }
+
+    if (choice === 'original') {
+      currentCard.style.transform = "translateX(-150%) rotate(-20deg)";
+    } else {
+      currentCard.style.transform = "translateX(150%) rotate(20deg)";
+    }
+    currentCard.style.opacity = "0";
+
+    currentIndex++;
+    
+    setTimeout(() => {
+      if (currentIndex < documents.length) {
+        renderCards();
+      } else {
+        clearInterval(timerInterval); // Зупиняємо таймер, якщо всі картки пройдені
+        showResult(false);
+      }
+    }, 300);
+  }
+
+  function addSwipeListeners(card) {
+    let startX = 0;
+    card.addEventListener('touchstart', e => { startX = e.changedTouches[0].screenX; });
+    card.addEventListener('touchend', e => {
+      let endX = e.changedTouches[0].screenX;
+      let diffX = endX - startX;
+      if (diffX < -40) handleChoice('original'); 
+      else if (diffX > 40) handleChoice('copy'); 
+    });
+  }
+
+  function showResult(timeOut) {
+    document.getElementById('header-box').style.display = 'none';
+    document.getElementById('card-stack').style.display = 'none';
+    document.getElementById('controls').style.display = 'none';
+    
+    const resultScreen = document.getElementById('result-screen');
+    resultScreen.style.display = 'flex';
+    
+    // Розрахунок відсотків
+    const percentage = Math.round((score / documents.length) * 100);
+    const titleEl = document.getElementById('result-title');
+    const feedbackEl = document.getElementById('final-feedback');
+    
+    document.getElementById('final-score').innerText = `Твій результат: ${percentage}% (${score} з ${documents.length})`;
+
+    if (timeOut) {
+      document.getElementById('final-score').innerText += "\nЧас вийшов! ⏳";
+    }
+
+    if (percentage >= 80) {
+      titleEl.innerText = "Продовжити і успіх! 🎉";
+      titleEl.className = "success-title";
+      feedbackEl.innerText = "Ти молодець! Справа сформована ідеально і готова для передачі далі.";
+    } else {
+      titleEl.innerText = "Не засмучуйся! 📚";
+      titleEl.className = "fail-title";
+      feedbackEl.innerText = "Навчання попереду. Повтори правила формування справи і спробуй ще раз!";
+    }
+  }
+</script>
+
+</body>
+</html>
